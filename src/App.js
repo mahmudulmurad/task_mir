@@ -1,5 +1,5 @@
 import "./style.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { jsonData } from "./json_data";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoIosArrowUp } from "react-icons/io";
@@ -24,11 +24,32 @@ export default function App() {
   );
 
   const [formValues, setFormValues] = useState(initialFormValues);
+  const [ansCount, setAnsCount] = useState(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
   };
+
+  const handleProgress = (data, type) => {
+    if (
+      data !== "" &&
+      type === "Adhoc" &&
+      ansCount < dataSource?.api_data?.questions?.length
+    ) {
+      setAnsCount(ansCount + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (
+      formValues["question_74"] &&
+      formValues["question_75"] &&
+      formValues["question_76"]
+    ) {
+      scrollToNextQuestion(470 * 2.5);
+    }
+  }, [formValues]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -44,10 +65,37 @@ export default function App() {
     });
   };
 
+  const scrollToNextQuestion = (data) => {
+    window.scrollTo({
+      top: data,
+      behavior: "smooth",
+    });
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Submitted Values:", formValues);
   };
+
+  useEffect(() => {
+    const header = document.querySelector(".header");
+    const formContainer = document.querySelector(".form-container");
+
+    const handleScroll = () => {
+      const formTop = formContainer.getBoundingClientRect().top;
+      const formBottom = formContainer.getBoundingClientRect().bottom;
+
+      if (formTop <= 0 && formBottom > 0) {
+        header.classList.add("with-border");
+      } else {
+        header.classList.remove("with-border");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <div className="main-container">
@@ -58,7 +106,7 @@ export default function App() {
       </header>
 
       <section className="form-container">
-        <form onSubmit={handleSubmit}>
+        <form>
           {dataSource?.api_data?.questions?.map((one, index) => {
             if (one.answer_type === "Option") {
               return (
@@ -81,6 +129,9 @@ export default function App() {
                             }
                             onChange={handleChange}
                             className="radio-input"
+                            onClick={() =>
+                              scrollToNextQuestion(411 * (index + 1))
+                            }
                           />
                           <label
                             htmlFor={`question_${one.question_id}_option_${idx}`}
@@ -90,7 +141,10 @@ export default function App() {
                           </label>
                         </div>
                       ))}
-                      <div className="okay-btn">
+                      <div
+                        className="okay-btn"
+                        onClick={() => scrollToNextQuestion(411 * (index + 1))}
+                      >
                         <div>OK</div>
                         {formValues[`question_${one.question_id}`] && (
                           <FaCheck />
@@ -127,11 +181,11 @@ export default function App() {
                                 <td key={idx}>
                                   <input
                                     type="radio"
-                                    name={`child_question_${child.child_question_id}`}
+                                    name={`question_${child.child_question_id}`}
                                     value={op.option_text}
                                     checked={
                                       formValues[
-                                        `child_question_${child.child_question_id}`
+                                        `question_${child.child_question_id}`
                                       ] === op.option_text
                                     }
                                     onChange={handleChange}
@@ -142,7 +196,10 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
-                      <div className="okay-btn">
+                      <div
+                        className="okay-btn"
+                        onClick={() => scrollToNextQuestion(470 * (index + 1))}
+                      >
                         <div>OK</div>
                         <FaCheck />
                       </div>
@@ -170,7 +227,20 @@ export default function App() {
                           onChange={handleChange}
                         />
                       </div>
-                      <div className="okay-btn">
+                      <div
+                        className="okay-btn"
+                        onClick={() => {
+                          handleProgress(
+                            formValues[`question_${one.question_id}`],
+                            "Adhoc"
+                          );
+                          scrollToNextQuestion(474 * (index + 1));
+                        }}
+                        disabled={
+                          formValues[`question_${one.question_id}`] !== "" &&
+                          true
+                        }
+                      >
                         <div>Save</div>
                         {formValues[`question_${one.question_id}`] && (
                           <FaCheck />
@@ -188,7 +258,7 @@ export default function App() {
       </section>
       <section className="sub-btn-container">
         <div className="sub-btn-wrapper">
-          <button type="submit" className="sub-btn">
+          <button type="submit" className="sub-btn" onClick={handleSubmit}>
             Submit
           </button>
         </div>
@@ -196,9 +266,18 @@ export default function App() {
       <footer>
         <div className="footer-wrapper">
           <div className="ans-progress-wrapper">
-            <p>1 of 4 Answered</p>
+            <p>
+              {ansCount} of {dataSource?.api_data?.questions?.length} Answered
+            </p>
             <div className="progress-bar-container">
-              <div className="progress-bar"></div>
+              <div
+                className="progress-bar"
+                style={{
+                  width: `${
+                    ansCount * (100 / dataSource?.api_data?.questions?.length)
+                  }%`,
+                }}
+              ></div>
             </div>
           </div>
           <div className="icon-wrapper">
