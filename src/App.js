@@ -1,12 +1,10 @@
+import "./style.css";
 import React, { useState } from "react";
 import { jsonData } from "./json_data";
 import { FaArrowLeft } from "react-icons/fa6";
-import { FaArrowUp } from "react-icons/fa";
-import { FaArrowDown } from "react-icons/fa";
-import { CiLocationArrow1 } from "react-icons/ci";
+import { IoIosArrowUp } from "react-icons/io";
+import { IoIosArrowDown } from "react-icons/io";
 import { FaCheck } from "react-icons/fa6";
-
-import "./style.css";
 
 export default function App() {
   const dataSource = jsonData.data[0];
@@ -32,16 +30,30 @@ export default function App() {
     setFormValues({ ...formValues, [name]: value });
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "smooth",
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Submitted Values:", formValues);
   };
 
   return (
-    <div>
+    <div className="main-container">
       <header className="header">
         <FaArrowLeft />
-        {/* <img alt="logo" src="file.png" className="logo-style" /> */}
+        <img alt="logo" src="file.png" className="logo-style" />
         <div></div>
       </header>
 
@@ -144,34 +156,61 @@ export default function App() {
             if (one.question_type === "Adhoc") {
               return (
                 <div key={index}>
-                  <label>
-                    {index + 1}.{one?.question_text}
-                    <textarea
-                      name={`question_${one.question_id}`}
-                      value={formValues[`question_${one.question_id}`] || ""}
-                      onChange={handleChange}
-                      placeholder="Write your message here..."
-                    />
-                  </label>
-                  <br />
+                  <div className="qsn-container">
+                    <div className="qsn-title">{index + 1}.</div>
+                    <div>
+                      <div className="qsn-title">{one?.question_text}</div>
+                      <p>Give additional information within 500 character</p>
+                      <div className="text-area-container">
+                        <textarea
+                          name={`question_${one.question_id}`}
+                          value={
+                            formValues[`question_${one.question_id}`] || ""
+                          }
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="okay-btn">
+                        <div>Save</div>
+                        {formValues[`question_${one.question_id}`] && (
+                          <FaCheck />
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             }
 
             return null;
           })}
-
-          <button type="submit">Submit</button>
         </form>
       </section>
-      <FaArrowUp
-        style={{
-          backgroundColor: "#007AD0",
-          color: "white",
-        }}
-      />
-      <FaArrowDown />
-      <CiLocationArrow1 />
+      <section className="sub-btn-container">
+        <div className="sub-btn-wrapper">
+          <button type="submit" className="sub-btn">
+            Submit
+          </button>
+        </div>
+      </section>
+      <footer>
+        <div className="footer-wrapper">
+          <div className="ans-progress-wrapper">
+            <p>1 of 4 Answered</p>
+            <div className="progress-bar-container">
+              <div className="progress-bar"></div>
+            </div>
+          </div>
+          <div className="icon-wrapper">
+            <div className="icon-container" onClick={scrollToTop}>
+              <IoIosArrowUp />
+            </div>
+            <div className="icon-container" onClick={scrollToBottom}>
+              <IoIosArrowDown />
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
