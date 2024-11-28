@@ -12,40 +12,51 @@ export default function App() {
   const initialFormValues = dataSource?.api_data?.questions?.reduce(
     (acc, question) => {
       if (question.question_type === "Driver") {
+        acc.answers[`${question.question_id}`] = {};
         question.child_questions.forEach((child) => {
-          acc[`question_${child.child_question_id}`] = "";
+          acc.answers[`${question.question_id}`][`${child.child_question_id}`] =
+            "";
         });
       } else {
-        acc[`question_${question.question_id}`] = "";
+        acc.answers[`${question.question_id}`] = "";
       }
       return acc;
     },
-    {}
+    {
+      answers: {},
+      question_set_no: dataSource?.api_data?.question_set_no,
+      referrer: "https://webtestda.grameenphone.com/survey/info-seeker",
+      survey_channel: "Website",
+    }
   );
 
   const [formValues, setFormValues] = useState(initialFormValues);
-  const [ansCount, setAnsCount] = useState(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
-  };
 
-  const handleProgress = (data, type) => {
-    if (
-      data !== "" &&
-      type === "Adhoc" &&
-      ansCount < dataSource?.api_data?.questions?.length
-    ) {
-      setAnsCount(ansCount + 1);
-    }
+    setFormValues((prev) => {
+      const updatedAnswers = { ...prev.answers };
+      if (["74", "75", "76"].includes(name)) {
+        if (!updatedAnswers["73"]) {
+          updatedAnswers["73"] = {};
+        }
+        updatedAnswers["73"][name] = value;
+      } else {
+        updatedAnswers[name] = value;
+      }
+      return {
+        ...prev,
+        answers: updatedAnswers,
+      };
+    });
   };
 
   useEffect(() => {
     if (
-      formValues["question_74"] &&
-      formValues["question_75"] &&
-      formValues["question_76"]
+      formValues["answers"]["73"]["74"] !== "" &&
+      formValues["answers"]["73"]["75"] !== "" &&
+      formValues["answers"]["73"]["76"] !== ""
     ) {
       scrollToNextQuestion(470 * 2.5);
     }
@@ -71,31 +82,11 @@ export default function App() {
       behavior: "smooth",
     });
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Submitted Values:", formValues);
   };
-
-  useEffect(() => {
-    const header = document.querySelector(".header");
-    const formContainer = document.querySelector(".form-container");
-
-    const handleScroll = () => {
-      const formTop = formContainer.getBoundingClientRect().top;
-      const formBottom = formContainer.getBoundingClientRect().bottom;
-
-      if (formTop <= 0 && formBottom > 0) {
-        header.classList.add("with-border");
-      } else {
-        header.classList.remove("with-border");
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   return (
     <div className="main-container">
@@ -120,12 +111,12 @@ export default function App() {
                         <div key={idx} className="option-wrapper">
                           <input
                             type="radio"
-                            id={`question_${one.question_id}_option_${idx}`}
-                            name={`question_${one.question_id}`}
-                            value={op.option_text}
+                            id={`${one.question_id}_option_${idx}`}
+                            name={`${one.question_id}`}
+                            value={op.option_id}
                             checked={
-                              formValues[`question_${one.question_id}`] ===
-                              op.option_text
+                              formValues.answers[`${one.question_id}`] ===
+                              String(op.option_id)
                             }
                             onChange={handleChange}
                             className="radio-input"
@@ -146,7 +137,7 @@ export default function App() {
                         onClick={() => scrollToNextQuestion(411 * (index + 1))}
                       >
                         <div>OK</div>
-                        {formValues[`question_${one.question_id}`] && (
+                        {formValues.answers[`${one.question_id}`] && (
                           <FaCheck />
                         )}
                       </div>
@@ -181,12 +172,12 @@ export default function App() {
                                 <td key={idx}>
                                   <input
                                     type="radio"
-                                    name={`question_${child.child_question_id}`}
-                                    value={op.option_text}
+                                    name={`${child.child_question_id}`}
+                                    value={op.option_id}
                                     checked={
-                                      formValues[
-                                        `question_${child.child_question_id}`
-                                      ] === op.option_text
+                                      formValues.answers[one.question_id][
+                                        `${child.child_question_id}`
+                                      ] === String(op.option_id)
                                     }
                                     onChange={handleChange}
                                   />
@@ -220,29 +211,19 @@ export default function App() {
                       <p>Give additional information within 500 character</p>
                       <div className="text-area-container">
                         <textarea
-                          name={`question_${one.question_id}`}
-                          value={
-                            formValues[`question_${one.question_id}`] || ""
-                          }
+                          name={`${one.question_id}`}
+                          value={formValues.answers[`${one.question_id}`] || ""}
                           onChange={handleChange}
                         />
                       </div>
                       <div
                         className="okay-btn"
                         onClick={() => {
-                          handleProgress(
-                            formValues[`question_${one.question_id}`],
-                            "Adhoc"
-                          );
                           scrollToNextQuestion(474 * (index + 1));
                         }}
-                        disabled={
-                          formValues[`question_${one.question_id}`] !== "" &&
-                          true
-                        }
                       >
                         <div>Save</div>
-                        {formValues[`question_${one.question_id}`] && (
+                        {formValues.answers[`${one.question_id}`] && (
                           <FaCheck />
                         )}
                       </div>
@@ -266,15 +247,13 @@ export default function App() {
       <footer>
         <div className="footer-wrapper">
           <div className="ans-progress-wrapper">
-            <p>
-              {ansCount} of {dataSource?.api_data?.questions?.length} Answered
-            </p>
+            <p>1 of {dataSource?.api_data?.questions?.length} Answered</p>
             <div className="progress-bar-container">
               <div
                 className="progress-bar"
                 style={{
                   width: `${
-                    ansCount * (100 / dataSource?.api_data?.questions?.length)
+                    1 * (100 / dataSource?.api_data?.questions?.length)
                   }%`,
                 }}
               ></div>

@@ -13,7 +13,7 @@
 }
 
 .header.with-border {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid #0000001f;
 }
 
 .logo-style {
@@ -41,7 +41,7 @@ p {
   font-size: 13px;
   font-weight: 400;
   line-height: 18px;
-  color: rgba(0, 0, 0, 0.38);
+  color: #00000061;
 }
 
 .option-wrapper {
@@ -52,7 +52,7 @@ p {
 .radio-input {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(0, 0, 0, 0.16);
+  border: 2px solid #00000029;
   background-color: #fff;
   margin: 0;
 }
@@ -189,6 +189,7 @@ footer {
   width: 210px;
   height: 4px;
   border-radius: 30px;
+  background-color: #0000001f;
 }
 
 .progress-bar {
